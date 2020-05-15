@@ -1,3 +1,3 @@
-# TFRecords
+# Dataset Scripts
 
-GCS specific files to download VOC 2007 and COCO 2017 Datasets and create TFRecords.
+GCS specific notebooks and scripts to download VOC 2007 and COCO 2017 Datasets and create TFRecords.
