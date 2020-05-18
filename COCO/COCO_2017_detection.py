@@ -193,5 +193,17 @@ def preprocess_coco(annot_dir: str) -> None:
         len(train_annotations) + len(val_annotations)))
 
 
+def download_coco():
+    for d in ["val2017", "train2017", "test2017"]:
+        if not os.path.exists(d):
+            os.mkdir(d)
+
+    os.system("gsutil -m rsync gs://images.cocodataset.org/val2017 val2017 && \
+    gsutil -m rsync gs://images.cocodataset.org/train2017 train2017 && \
+    gsutil -m rsync gs://images.cocodataset.org/test2017 test2017 && \
+    wget http://images.cocodataset.org/annotations/annotations_trainval2017.zip &&\
+    unzip annotations_trainval2017.zip")
+
+
 if __name__ == '__main__':
     preprocess_coco(".")
