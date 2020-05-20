@@ -3,7 +3,6 @@ from glob import glob
 from tqdm import tqdm
 import os, random, math
 import tensorflow as tf
-from matplotlib import pyplot as plt
 
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 
@@ -13,23 +12,26 @@ class TFRecordCreator:
     def __init__(self, hr_images_path, lr_images_path):
         self.hr_images_path = hr_images_path
         self.lr_images_path = lr_images_path
-    
-    def _byte_feature(self, val):
+
+    @staticmethod
+    def _byte_feature(val):
         val = val.numpy() if isinstance(val, type(tf.constant(0))) else val
         return tf.train.Feature(
             bytes_list=tf.train.BytesList(
                 value=[val]
             )
         )
-    
-    def _float_feature(self, val):
+
+    @staticmethod
+    def _float_feature(val):
         return tf.train.Feature(
             float_list=tf.train.FloatList(
                 value=[val]
             )
         )
-    
-    def _int64_feature(self, val):
+
+    @staticmethod
+    def _int64_feature(val):
         return tf.train.Feature(
             int64_list=tf.train.Int64List(
                 value=[val]
@@ -48,7 +50,7 @@ class TFRecordCreator:
             )
         )
     
-    def make_tfrecord_file(self, output_path):
+    def make_tf_record_file(self, output_path):
         samples = []
         for hr_img_path in glob(self.hr_images_path + '/*.png'):
             image_name = os.path.basename(hr_img_path).replace('.png', '')
@@ -70,7 +72,6 @@ class TFRecordCreator:
                 writer.write(tf_example.SerializeToString())
 
 
-
 class SRTfrecordDataset:
 
     def __init__(self, gt_size, scale=4, apply_flip=True, apply_rotation=True):
@@ -78,6 +79,12 @@ class SRTfrecordDataset:
         self.scale = scale
         self.apply_flip = apply_flip
         self.apply_rotation = apply_rotation
+
+    @staticmethod
+    def normalize(lr_image, hr_image):
+        lr_image = tf.cast(lr_image, dtype=tf.float32)
+        hr_image = tf.cast(hr_image, dtype=tf.float32)
+        return lr_image * 2.0 - 1.0, hr_image * 2.0 - 1.0
     
     def apply_random_crop(self, lr_image, hr_image):
         lr_image_shape = tf.shape(lr_image)
@@ -100,12 +107,7 @@ class SRTfrecordDataset:
         lr_image = tf.slice(lr_image, offset, lr_shape)
         hr_image = tf.slice(hr_image, offset * self.scale, gt_shape)
         return lr_image, hr_image
-    
-    def normalize(self, lr_image, hr_image):
-        lr_image = tf.cast(lr_image, dtype=tf.float32)
-        hr_image = tf.cast(hr_image, dtype=tf.float32)
-        return lr_image * 2.0 - 1.0, hr_image  * 2.0 - 1.0
-    
+
     def parse_tfrecord(self, tfrecord_file):
         def parse(tfrecord):
             features = {
@@ -119,7 +121,7 @@ class SRTfrecordDataset:
             lr_image, hr_image = self.apply_random_crop(lr_image, hr_image)
             lr_image, hr_image = self.normalize(lr_image, hr_image)
             return lr_image, hr_image
-        return parse
+        return parse(tfrecord_file)
     
     def get_dataset(self, tfrecord_file, batch_size, buffer_size):
         dataset = tf.data.TFRecordDataset(tfrecord_file)
@@ -139,6 +141,7 @@ class SRTfrecordDataset:
         dataset = dataset.batch(batch_size, drop_remainder=True)
         dataset = dataset.prefetch(buffer_size=AUTOTUNE)
         return dataset
+
 
 class Augmentation:
 
