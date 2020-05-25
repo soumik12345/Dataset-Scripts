@@ -155,10 +155,10 @@ def preprocess_coco(annot_dir: str) -> None:
 
     print('Start to parse annotations.')
 
-    if not os.path.exists(annot_dir + '/tfrecords'):
-        os.makedirs(annot_dir + './tfrecords')
+    if not os.path.exists(os.path.join(annot_dir, "tfrecords_coco")):
+        os.makedirs(annot_dir + './tfrecords_coco')
 
-    with open(annot_dir + '/annotations/instances_train2017.json') as train_json:
+    with open(os.path.join(annot_dir, "annotations/instances_train2017.json")) as train_json:
         train_annos = json.load(train_json)
         train_categories = {
             category['id']: (i, category['name'])
