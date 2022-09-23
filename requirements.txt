@@ -55,7 +55,7 @@ pexpect==4.8.0
 pickleshare==0.7.5
 prometheus-client==0.7.1
 prompt-toolkit==3.0.5
-protobuf==3.11.3
+protobuf==3.18.3
 ptyprocess==0.6.0
 py-spy==0.3.3
 pyasn1==0.4.8
